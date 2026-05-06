@@ -60,18 +60,39 @@ uploaded_files = st.file_uploader("Upload Textbook Pages", type=["pdf", "png", "
 if uploaded_files:
     if st.button("🪄 Generate Professional PDF"):
         with st.spinner("Analyzing pages and writing notes..."):
-            processed_images = []
+            content_to_send = [f"Create structured {note_depth} Grade 11 academic notes based on these images. Use clear headings and bullet points."]
+            
             for f in uploaded_files:
                 if f.type == "application/pdf":
                     doc = fitz.open(stream=f.read(), filetype="pdf")
                     for p in doc:
                         pix = p.get_pixmap()
-                        processed_images.append(Image.open(io.BytesIO(pix.tobytes())))
+                        img = Image.open(io.BytesIO(pix.tobytes()))
+                        content_to_send.append(img)
                 else:
-                    processed_images.append(Image.open(f))
+                    # This ensures the image is correctly formatted for Gemini
+                    img = Image.open(f)
+                    content_to_send.append(img)
 
-            prompt = f"Create structured {note_depth} Grade 11 academic notes based on these images. Use clear headings and bullet points."
-            response = model.generate_content([prompt] + processed_images)
+            try:
+                # Send everything to the model
+                response = model.generate_content(content_to_send)
+                
+                # Show preview
+                st.markdown("### Preview:")
+                st.markdown(response.text)
+                
+                # PDF Download
+                pdf_data = export_as_pdf(response.text)
+                st.download_button(
+                    label="📥 Download Study Guide (PDF)",
+                    data=pdf_data,
+                    file_name="Study_Notes_Ashraf_AI.pdf",
+                    mime="application/pdf"
+                )
+            except Exception as e:
+                st.error(f"AI Error: {e}")
+                st.info("Try uploading fewer pages or using JPG/PNG images instead of PDF.")
             
             # Show preview
             st.markdown("### Preview:")
