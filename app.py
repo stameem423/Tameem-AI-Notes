@@ -18,7 +18,7 @@ else:
 
 if api_key:
     genai.configure(api_key=api_key)
-    model = genai.ImageGenerationModel("imagen-3")
+    model = genai.GenerativeModel('gemini-3-flash-preview')
 else:
     st.error("⚠️ Developer Note: API Key missing in Streamlit Secrets!")
 
